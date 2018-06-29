@@ -32,6 +32,8 @@ all_members.each do | member|
                     event.payload.commits.each do |commit_data|
                     commit_entry = "#{commit_data.url}||#{active_member}"
                         if !HISTORICAL_COMMITS.include? commit_entry
+                            message = "<!here> New public commit from *#{active_member}*: #{commit_data.url}"
+                            slack.ping message
                             puts commit_data.url
                             COMMITS_FILE.puts commit_entry
                         end

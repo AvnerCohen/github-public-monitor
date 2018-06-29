@@ -25,7 +25,7 @@ For a small enough organization scanning manually each and every commit, sometim
 
 
 ```sh
-GPM_ORG_NAME=YOUR_ORG_NAME GPM_SLACK_HOOK=HOOK_URL GPM_GITHUB_TOKEN=GITHUB_TOKEN ruby org_audit.r
+GPM_ORG_NAME=YOUR_ORG_NAME GPM_SLACK_HOOK=HOOK_URL GPM_GITHUB_TOKEN=GITHUB_TOKEN ruby org_audit.rb
 ```
 
 **GITHUB_TOKEN** - should only have permission to read organization members, that's it.
