@@ -14,9 +14,9 @@ LOG_FILE_NAME = 'historical_commits.log'
 HISTORICAL_COMMITS = Set.new
 if File.exist? LOG_FILE_NAME
     File.open(LOG_FILE_NAME) do |f1|
-      while line = f1.gets
-        HISTORICAL_COMMITS.add(line.strip)
-      end
+        while line = f1.gets
+            HISTORICAL_COMMITS.add(line.strip)
+        end
     end
 end
 
@@ -28,9 +28,9 @@ all_members.each do | member|
     github.activity.events.performed(active_member).each do |event|
         if ['PushEvent'].include?(event.type)
             case event.type
-            when 'PushEvent'
+                when 'PushEvent'
                     event.payload.commits.each do |commit_data|
-                    commit_entry = "#{commit_data.url}||#{active_member}"
+                        commit_entry = "#{commit_data.url}||#{active_member}"
                         if !HISTORICAL_COMMITS.include? commit_entry
                             message = "<!here> New public commit from *#{active_member}*: #{commit_data.url}"
                             slack.ping message
