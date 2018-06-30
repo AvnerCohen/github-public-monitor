@@ -30,8 +30,8 @@ GPM_ORG_NAME=YOUR_ORG_NAME GPM_SLACK_HOOK=HOOK_URL GPM_GITHUB_TOKEN=GITHUB_TOKEN
 
 **GITHUB_TOKEN** - should only have permission to read organization members, that's it.
 
-**GPM_SLACK_HOOK**  - Incoming Slack Hook to a predefined channel.
+**GPM_SLACK_HOOK** - Incoming Slack hook to a predefined channel.
 
-**GPM_ORG_NAME** - You organization name
+**GPM_ORG_NAME** - Your organization's name
 
-Once defined, this can be run on some schedule to keep monitor the organizations' public commits.
+Once defined, this can be run on some schedule to keep monitor the organization's public commits.
