@@ -21,7 +21,7 @@ What I have seen is that usually such leaks will be wrong commits to public repo
 
 For a small enough organization scanning manually each and every commit, sometimes can be done, and might be a simpler solution in some cases.
 
-###How to run?
+### How to run?
 
 
 ```sh
