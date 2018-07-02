@@ -12,7 +12,7 @@ REPO_REGEX = %r{.*repos\/(?<user>[\w\-\_]*)\/(?<repo>[\w\-\_]*)\/.*}
 LOG_FILE_NAME = 'historical_commits.log'
 
 MAX_CONTRRIBUTORS = 2
-MAX_COMMITS = 3
+MAX_COMMITS = 10
 
 HISTORICAL_COMMITS = Set.new
 
