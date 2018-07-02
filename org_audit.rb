@@ -30,26 +30,35 @@ end
 
 
 def review_past_commits
+    messages_to_publish = []
     commits_file = File.open(LOG_FILE_NAME, 'a')
     all_members = GITHUB.orgs.members.list ORGANIZATION_NAME
     all_members.each do | member|
         active_member = member['login']
         puts "Reviewing Changes by #{active_member}"
+        yesterday = Date.today.prev_day
+        GITHUB.gists.list({user: active_member, since: yesterday}).each do |event|
+            commit_entry = "#{event.html_url}||#{active_member}"
+            if !was_reported?(commit_entry, commits_file)
+                message = "<!here> New Public gist from *#{active_member}*: #{event.html_url}"
+                messages_to_publish.push message
+                puts event.html_url
+            end
+        end
         GITHUB.activity.events.performed(active_member).each do |event|
             if ['PushEvent'].include?(event.type)
                 case event.type
                 when 'PushEvent'
                     event.payload.commits.each do |commit_data|
                         commit_entry = "#{commit_data.url}||#{active_member}"
-                        if !HISTORICAL_COMMITS.include? commit_entry
-                            message = "<!here> New public commit from *#{active_member}*: #{commit_data.url}"
+                        message = "<!here> New public commit from *#{active_member}*: #{commit_data.url}"
+                        if !was_reported?(commit_entry, commits_file)
                             if should_publish_notification?(commit_data)
-                                SLACK.ping message
+                                messages_to_publish.push message
                                 puts commit_data.url
                             else
-                                puts "Skipped notification to public repo."
+                                puts "Skipped notification for public repo."
                             end
-                            commits_file.puts commit_entry
                         end
                     end
                 else
@@ -58,6 +67,14 @@ def review_past_commits
         end
     end
     commits_file.close
+
+    messages_to_publish.each{ |message| SLACK.ping message}
+end
+
+def was_reported?(commit_entry, commits_file)
+    return true if HISTORICAL_COMMITS.include? commit_entry
+    commits_file.puts commit_entry
+    return false
 end
 
 
