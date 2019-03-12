@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'github_api', '~> 0.17.0'
-gem 'slack-notifier', '~> 1.5.1'
+gem 'github_api', '~> 0.18.2'
+gem 'slack-notifier', '~> 2.3.2'
