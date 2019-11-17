@@ -1,5 +1,4 @@
 require 'set'
-
 require 'github_api'
 require 'slack-notifier'
 
@@ -51,7 +50,7 @@ def review_past_commits
                 when 'PushEvent'
                     event.payload.commits.each do |commit_data|
                         commit_entry = "#{commit_data.url}||#{active_member}"
-                        message = "<!here> New public commit from *#{active_member}*: #{commit_data.url}"
+                        message = "<!here> New public commit from *#{active_member}*: #{construct_html_url(commit_data.url)}"
                         if !was_reported?(commit_entry, commits_file)
                             if should_publish_notification?(commit_data)
                                 messages_to_publish.push message
@@ -75,6 +74,12 @@ def was_reported?(commit_entry, commits_file)
     return true if HISTORICAL_COMMITS.include? commit_entry
     commits_file.puts commit_entry
     return false
+end
+
+
+def construct_html_url(html_url)
+    as_array = html_url.split("/")
+    "https://github.com/#{as_array[4]}/#{as_array[5]}/commit/#{as_array[7]}"
 end
 
 
