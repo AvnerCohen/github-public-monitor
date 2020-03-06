@@ -9,11 +9,13 @@ SLACK = Slack::Notifier.new ENV['GPM_SLACK_HOOK']
 
 REPO_REGEX = %r{.*repos\/(?<user>[\w\-\_]*)\/(?<repo>[\w\-\_]*)\/.*}
 LOG_FILE_NAME = 'historical_commits.log'
+MENTIONS_LOG_FILE_NAME = 'historical_mentions.log'
 
 MAX_CONTRRIBUTORS = 2
 MAX_COMMITS = 10
 
 HISTORICAL_COMMITS = Set.new
+HISTORICAL_MENTIONS = Set.new
 
 def prev_commits
     if !File.exist? LOG_FILE_NAME
@@ -26,6 +28,16 @@ def prev_commits
     end
 end
 
+def prev_mentions
+    if !File.exist? MENTIONS_LOG_FILE_NAME
+        return
+    end
+    File.open(MENTIONS_LOG_FILE_NAME) do |f1|
+        while line = f1.gets
+            HISTORICAL_MENTIONS.add(line.strip)
+        end
+    end
+end
 
 
 def review_past_commits
@@ -99,10 +111,29 @@ def should_publish_notification?(commit_data)
     return true
 end
 
-#
+def review_org_mention
+    mentions_file = File.open(MENTIONS_LOG_FILE_NAME, 'a')
+    search_results = GITHUB.search.code(ORGANIZATION_NAME).items
+    urls_with_org_mentions = search_results.map { |item| item.html_url }
+    urls_with_org_mentions.each do |url|
+        next if HISTORICAL_MENTIONS.include? url
+            
+        notify_on_mention(url)
+        puts "need to publish this one: " + url
+        mentions_file.puts url
+    end
+end
+
+def notify_on_mention(url)
+    message = "<!here> New github entry with *#{ORGANIZATION_NAME}* mention: #{url}"
+    SLACK.ping message
+end
+
 def run!
     prev_commits
+    prev_mentions
     review_past_commits
+    review_org_mention
 end
 
 
