@@ -12,10 +12,12 @@ LOG_FILE_NAME = 'historical_commits.log'
 MENTIONS_LOG_FILE_NAME = 'historical_mentions.log'
 
 MAX_CONTRRIBUTORS = 2
-MAX_COMMITS = 10
+MAX_COMMITS = 5
 
 HISTORICAL_COMMITS = Set.new
 HISTORICAL_MENTIONS = Set.new
+HISTORICAL_MENTIONS_REPOS_ONLY = Set.new
+
 
 def prev_commits
     if !File.exist? LOG_FILE_NAME
@@ -37,6 +39,7 @@ def prev_mentions
             HISTORICAL_MENTIONS.add(line.strip)
         end
     end
+    HISTORICAL_COMMITS.map { |item| HISTORICAL_MENTIONS_REPOS_ONLY.add( item.split("blob")[0]) }
 end
 
 
@@ -79,7 +82,9 @@ def review_past_commits
     end
     commits_file.close
 
-    messages_to_publish.each{ |message| SLACK.ping message}
+    messages_to_publish.each do |message| 
+        SLACK.ping message
+    end
 end
 
 def was_reported?(commit_entry, commits_file)
@@ -117,6 +122,7 @@ def review_org_mention
     urls_with_org_mentions = search_results.map { |item| item.html_url }
     urls_with_org_mentions.each do |url|
         next if HISTORICAL_MENTIONS.include? url
+        next if HISTORICAL_MENTIONS_REPOS_ONLY.include? url.split("blob")[0]
             
         notify_on_mention(url)
         puts "need to publish this one: " + url
