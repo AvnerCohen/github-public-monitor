@@ -10,6 +10,7 @@ SLACK = Slack::Notifier.new ENV['GPM_SLACK_HOOK']
 REPO_REGEX = %r{.*repos\/(?<user>[\w\-\_]*)\/(?<repo>[\w\-\_]*)\/.*}
 LOG_FILE_NAME = 'historical_commits.log'
 MENTIONS_LOG_FILE_NAME = 'historical_mentions.log'
+DOCKERHUB_LOG_FILE_NAME = 'historical_dockerhub.log'
 
 MAX_CONTRRIBUTORS = 2
 MAX_COMMITS = 5
@@ -17,31 +18,18 @@ MAX_COMMITS = 5
 HISTORICAL_COMMITS = Set.new
 HISTORICAL_MENTIONS = Set.new
 HISTORICAL_MENTIONS_REPOS_ONLY = Set.new
+HISTORICAL_DOCKERHUB = Set.new
 
-
-def prev_commits
-    if !File.exist? LOG_FILE_NAME
+def collect_past_data(file_name, set_obj)
+    if !File.exist?(file_name)
         return
     end
-    File.open(LOG_FILE_NAME) do |f1|
+    File.open(file_name) do |f1|
         while line = f1.gets
-            HISTORICAL_COMMITS.add(line.strip)
+            set_obj.add(line.strip)
         end
     end
 end
-
-def prev_mentions
-    if !File.exist? MENTIONS_LOG_FILE_NAME
-        return
-    end
-    File.open(MENTIONS_LOG_FILE_NAME) do |f1|
-        while line = f1.gets
-            HISTORICAL_MENTIONS.add(line.strip)
-        end
-    end
-    HISTORICAL_COMMITS.map { |item| HISTORICAL_MENTIONS_REPOS_ONLY.add( item.split("blob")[0]) }
-end
-
 
 def review_past_commits
     messages_to_publish = []
@@ -116,6 +104,18 @@ def should_publish_notification?(commit_data)
     return true
 end
 
+def review_dockerhub_mention
+    mentions_file = File.open(DOCKERHUB_LOG_FILE_NAME, 'a')
+    search_results = `docker search #{ORGANIZATION_NAME}`.split("\n")[1..]
+    dcokerhub_org_mentions = search_results.map { |item| item.split[0] }
+    dcokerhub_org_mentions.each do |url|
+        next if HISTORICAL_DOCKERHUB.include? url
+        notify_on_mention(url, 'dockerhub')
+        mentions_file.puts url
+    end
+end
+
+
 def review_org_mention
     mentions_file = File.open(MENTIONS_LOG_FILE_NAME, 'a')
     search_results = GITHUB.search.code(ORGANIZATION_NAME).items
@@ -124,22 +124,28 @@ def review_org_mention
         next if HISTORICAL_MENTIONS.include? url
         next if HISTORICAL_MENTIONS_REPOS_ONLY.include? url.split("blob")[0]
             
-        notify_on_mention(url)
-        puts "need to publish this one: " + url
+        notify_on_mention(url, 'github')
         mentions_file.puts url
     end
 end
 
-def notify_on_mention(url)
-    message = "<!here> New github entry with *#{ORGANIZATION_NAME}* mention: #{url}"
+def notify_on_mention(url, system)
+    message = "<!here> New #{system} entry with *#{ORGANIZATION_NAME}* mention: #{url}"
     SLACK.ping message
 end
 
+def prep_historical_data!
+    collect_past_data(DOCKERHUB_LOG_FILE_NAME, HISTORICAL_DOCKERHUB)
+    collect_past_data(LOG_FILE_NAME, HISTORICAL_COMMITS)
+    collect_past_data(MENTIONS_LOG_FILE_NAME, HISTORICAL_MENTIONS)
+    HISTORICAL_COMMITS.map { |item| HISTORICAL_MENTIONS_REPOS_ONLY.add( item.split("blob")[0]) }
+end
+
 def run!
-    prev_commits
-    prev_mentions
+    prep_historical_data!
     review_past_commits
     review_org_mention
+    review_dockerhub_mention
 end
 
 
