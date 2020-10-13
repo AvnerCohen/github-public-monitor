@@ -1,6 +1,8 @@
 require 'set'
+require 'mkmf'
 require 'github_api'
 require 'slack-notifier'
+
 
 ORGANIZATION_NAME = ENV['GPM_ORG_NAME']
 GITHUB = Github.new oauth_token: ENV['GPM_GITHUB_TOKEN']
@@ -105,13 +107,17 @@ def should_publish_notification?(commit_data)
 end
 
 def review_dockerhub_mention
-    mentions_file = File.open(DOCKERHUB_LOG_FILE_NAME, 'a')
-    search_results = `docker search #{ORGANIZATION_NAME}`.split("\n")[1..]
-    dcokerhub_org_mentions = search_results.map { |item| item.split[0] }
-    dcokerhub_org_mentions.each do |url|
-        next if HISTORICAL_DOCKERHUB.include? url
-        notify_on_mention(url, 'dockerhub')
-        mentions_file.puts url
+    if find_executable 'docker'
+        mentions_file = File.open(DOCKERHUB_LOG_FILE_NAME, 'a')
+        search_results = `docker search #{ORGANIZATION_NAME}`.split("\n")[1..]
+        dcokerhub_org_mentions = search_results.map { |item| item.split[0] }
+        dcokerhub_org_mentions.each do |url|
+            next if HISTORICAL_DOCKERHUB.include? url
+            notify_on_mention(url, 'dockerhub')
+            mentions_file.puts url
+        end
+    else
+        puts "!! Skipped *dockerhub* review, docker executable not installed."
     end
 end
 

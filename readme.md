@@ -1,6 +1,14 @@
 # Github Secrets Public Monitor
 
 A simple script to loop over all organization members, and search for each commit done by the team, publishing any new commit to a slack channel for a manual review
+The script will search for any new:
+
+1. Public commits to github
+2. Public gists to github
+3. Company's name mentions across github search
+4. Company's name mentions across docker hub
+
+Of course, this is a setup that can only work on a low volume public traffic and a small  (< 150) organization.
 
 
 ### Why?
@@ -30,8 +38,8 @@ GPM_ORG_NAME=YOUR_ORG_NAME GPM_SLACK_HOOK=HOOK_URL GPM_GITHUB_TOKEN=GITHUB_TOKEN
 
 **GITHUB_TOKEN** - should only have permission to read organization members, that's it.
 
-**GPM_SLACK_HOOK** - Incoming Slack hook to a predefined channel.
+**GPM\_SLACK_HOOK** - Incoming Slack hook to a predefined channel.
 
-**GPM_ORG_NAME** - Your organization's name
+**GPM\_ORG_NAME** - Your organization's name
 
 Once defined, this can be run on some schedule to keep monitor the organization's public commits.
