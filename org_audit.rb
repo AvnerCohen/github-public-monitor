@@ -144,7 +144,7 @@ def prep_historical_data!
     collect_past_data(DOCKERHUB_LOG_FILE_NAME, HISTORICAL_DOCKERHUB)
     collect_past_data(LOG_FILE_NAME, HISTORICAL_COMMITS)
     collect_past_data(MENTIONS_LOG_FILE_NAME, HISTORICAL_MENTIONS)
-    HISTORICAL_COMMITS.map { |item| HISTORICAL_MENTIONS_REPOS_ONLY.add( item.split("blob")[0]) }
+    HISTORICAL_MENTIONS.map { |item| HISTORICAL_MENTIONS_REPOS_ONLY.add( item.split("blob")[0]) }
 end
 
 def run!
